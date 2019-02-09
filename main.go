@@ -78,7 +78,7 @@ func main() {
 	}
 
 	if viper.IsSet("http") {
-		httplistener.New(irccat.irc)
+		httplistener.New(irccat.irc, irccat.twitter)
 	}
 
 	irccat.tcp.Run(irccat.irc, irccat.twitter)

@@ -1,6 +1,7 @@
 package httplistener
 
 import (
+	"github.com/dghubble/go-twitter/twitter"
 	"github.com/irccloud/go-ircevent"
 	"github.com/juju/loggo"
 	"github.com/spf13/viper"
@@ -11,14 +12,16 @@ import (
 var log = loggo.GetLogger("HTTPListener")
 
 type HTTPListener struct {
-	http http.Server
-	irc  *irc.Connection
-	tpls *template.Template
+	http    http.Server
+	irc     *irc.Connection
+	twitter *twitter.Client
+	tpls    *template.Template
 }
 
-func New(irc *irc.Connection) (*HTTPListener, error) {
+func New(irc *irc.Connection, twittercon *twitter.Client) (*HTTPListener, error) {
 	hl := HTTPListener{}
 	hl.irc = irc
+	hl.twitter = twittercon
 	hl.http = http.Server{Addr: viper.GetString("http.listen")}
 	hl.tpls = parseTemplates()
 	log.Infof("Listening for HTTP requests on %s", viper.GetString("http.listen"))
