@@ -24,6 +24,8 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 
 	hook, err := github.New(github.Options.Secret(viper.GetString("http.listeners.github.secret")))
 
+	var err2 error
+
 	if err != nil {
 		return
 	}
@@ -40,6 +42,7 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 	}
 
 	msgs := []string{}
+	tmsgs := []string{}
 	repo := ""
 	send := false
 
@@ -48,38 +51,44 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 		pl := payload.(github.ReleasePayload)
 		if pl.Action == "published" {
 			send = true
-			msgs, err = hl.renderTemplate("github.release", payload)
+			msgs, err = hl.renderTemplate("github.release.irc", payload)
 			repo = pl.Repository.Name
 		}
 	case github.PushPayload:
 		pl := payload.(github.PushPayload)
 		send = true
-		msgs, err = hl.renderTemplate("github.push", payload)
+		msgs, err = hl.renderTemplate("github.push.irc", payload)
+		tmsgs, err2 = hl.renderTemplate("github.push.twitter", payload)
 		repo = pl.Repository.Name
 	case github.IssuesPayload:
 		pl := payload.(github.IssuesPayload)
 		if interestingIssueAction(pl.Action) {
 			send = true
-			msgs, err = hl.renderTemplate("github.issue", payload)
+			msgs, err = hl.renderTemplate("github.issue.irc", payload)
 			repo = pl.Repository.Name
 		}
 	case github.IssueCommentPayload:
 		pl := payload.(github.IssueCommentPayload)
 		if pl.Action == "created" {
 			send = true
-			msgs, err = hl.renderTemplate("github.issuecomment", payload)
+			msgs, err = hl.renderTemplate("github.issuecomment.irc", payload)
 			repo = pl.Repository.Name
 		}
 	case github.PullRequestPayload:
 		pl := payload.(github.PullRequestPayload)
 		if interestingIssueAction(pl.Action) {
 			send = true
-			msgs, err = hl.renderTemplate("github.pullrequest", payload)
+			msgs, err = hl.renderTemplate("github.pullrequest.irc", payload)
 			repo = pl.Repository.Name
 		}
 	}
 
 	if err != nil {
+		log.Errorf("Error rendering GitHub event template: %s", err)
+		return
+	}
+
+	if err2 != nil {
 		log.Errorf("Error rendering GitHub event template: %s", err)
 		return
 	}
@@ -99,6 +108,10 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 		log.Infof("%s [%s -> %s] GitHub event received", request.RemoteAddr, repo, channel)
 		for _, msg := range msgs {
 			hl.irc.Privmsgf(channel, msg)
+		}
+		for _, msg := range tmsgs {
+			tweet, resp, err := hl.twitter.Statuses.Update(msg, nil)
+			log.Infof("tweet=%s resp=%s err=%s", tweet, resp, err)
 		}
 	}
 }
