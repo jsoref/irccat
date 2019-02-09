@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/deckarep/golang-set"
+	"github.com/dghubble/go-twitter/twitter"
+	"github.com/dghubble/oauth1"
 	"github.com/fsnotify/fsnotify"
 	"github.com/irccloud/go-ircevent"
 	"github.com/irccloud/irccat/httplistener"
@@ -27,6 +29,7 @@ type IRCCat struct {
 	auth_users   map[string]bool
 	irc          *irc.Connection
 	tcp          *tcplistener.TCPListener
+	twitter      *twitter.Client
 	signals      chan os.Signal
 }
 
@@ -68,11 +71,17 @@ func main() {
 		return
 	}
 
+	if viper.IsSet("twitter") {
+		log.Criticalf("setupTwitter")
+		irccat.setupTwitter()
+		log.Criticalf("setupTwitter done")
+	}
+
 	if viper.IsSet("http") {
 		httplistener.New(irccat.irc)
 	}
 
-	irccat.tcp.Run(irccat.irc)
+	irccat.tcp.Run(irccat.irc, irccat.twitter)
 	irccat.irc.Loop()
 }
 
@@ -81,6 +90,16 @@ func (i *IRCCat) signalHandler() {
 	log.Infof("Exiting on %s", sig)
 	i.irc.QuitMessage = fmt.Sprintf("Exiting on %s", sig)
 	i.irc.Quit()
+}
+
+func (i *IRCCat) setupTwitter() {
+	log.Criticalf("consumerKey: %s", viper.GetString("twitter.consumerKey"))
+	config := oauth1.NewConfig(viper.GetString("twitter.consumerKey"), viper.GetString("twitter.consumerSecret"))
+	token := oauth1.NewToken(viper.GetString("twitter.accessToken"), viper.GetString("twitter.accessSecret"))
+	httpClient := config.Client(oauth1.NoContext, token)
+	client := twitter.NewClient(httpClient)
+
+	i.twitter = client
 }
 
 func (i *IRCCat) connectIRC() error {
