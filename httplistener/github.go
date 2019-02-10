@@ -2,6 +2,7 @@ package httplistener
 
 import (
 	"fmt"
+	"github.com/dghubble/go-twitter/twitter"
 	"github.com/spf13/viper"
 	"gopkg.in/go-playground/webhooks.v5/github"
 	"net/http"
@@ -94,6 +95,7 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 	}
 
 	if send {
+		prevtweet := int64(0)
 		repo = strings.ToLower(repo)
 		channel := viper.GetString("http.listeners.github.default_channel")
 		if channel == "" {
@@ -110,7 +112,11 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 			hl.irc.Privmsgf(channel, msg)
 		}
 		for _, msg := range tmsgs {
-			tweet, resp, err := hl.twitter.Statuses.Update(msg, nil)
+			if msg == "" { continue }
+			params := twitter.StatusUpdateParams{InReplyToStatusID: prevtweet}
+			log.Infof("msg=%q", msg)
+			tweet, resp, err := hl.twitter.Statuses.Update(msg, &params)
+			prevtweet = tweet.ID
 			log.Infof("tweet=%s resp=%s err=%s", tweet, resp, err)
 		}
 	}
