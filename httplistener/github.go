@@ -31,7 +31,8 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 	// All valid events we want to receive need to be listed here.
 	payload, err := hook.Parse(request,
 		github.ReleaseEvent, github.PushEvent, github.IssuesEvent, github.IssueCommentEvent,
-		github.PullRequestEvent)
+		github.PullRequestEvent,
+		github.PullRequestReviewEvent, github.PullRequestReviewCommentEvent)
 
 	if err != nil {
 		// This usually happens because we've received an event we don't need to handle.
@@ -75,6 +76,19 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 		if interestingIssueAction(pl.Action) {
 			send = true
 			msgs, err = hl.renderTemplate("github.pullrequest", payload)
+			repo = pl.Repository.Name
+		}
+	case github.PullRequestReviewPayload:
+		pl := payload.(github.PullRequestReviewPayload)
+		send = true
+		msgs, err = hl.renderTemplate("github.pullrequestreview", payload)
+		repo = pl.Repository.Name
+		
+	case github.PullRequestReviewCommentPayload:
+		pl := payload.(github.PullRequestReviewCommentPayload)
+		if pl.Action == "created" {
+			send = true
+			msgs, err = hl.renderTemplate("github.pullrequestreviewcomment", payload)
 			repo = pl.Repository.Name
 		}
 	}

@@ -13,11 +13,13 @@ var defaultTemplates = map[string]string{
 	"github.release": "[{{b .Repository.Name}}] release {{h .Release.TagName}} has been published by {{g .Release.Author.Login}}: {{.Release.HTMLURL}}",
 	"github.push": `[{{b .Repository.Name}}] {{g .Sender.Login}} {{if .Forced}}force-{{end}}{{if .Deleted}}deleted{{else}}pushed{{end}} {{if .Commits}}{{.Commits|len}} commit{{if .Commits|len|lt 1}}s{{end}} to {{end}}{{.Ref|refType}} {{.Ref|refName|h}}: {{.Compare}}
 {{range commitLimit . 3}}
-	• {{g .Username}} ({{.Sha|truncateSha|h}}): {{trunc .Message 150}}
+ • {{g .Username}} ({{.Sha|truncateSha|h}}): {{trunc .Message 150}}
 {{end}}`,
 	"github.issue":        "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} issue #{{.Issue.Number}}: {{.Issue.Title}} {{.Issue.HTMLURL}}",
 	"github.issuecomment": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} commented on issue #{{.Issue.Number}}: {{trunc .Comment.Body 150}} {{.Issue.HTMLURL}}",
-	"github.pullrequest":  "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} pull request #{{.PullRequest.Number}} (\x0303{{.PullRequest.Base.Ref}}…{{.PullRequest.Head.Ref}}\x0f): {{.PullRequest.Title}} {{.PullRequest.HTMLURL}}",
+	"github.pullrequestreviewcomment": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} review commented on PR #{{.PullRequest.Number}}: {{trunc .Comment.Body 150}} {{.PullRequest.HTMLURL}}",
+	"github.pullrequestreview": "[{{b .Repository.Name}}] {{g .Review.User.Login}} {{.Action}} a review on PR #{{.PullRequest.Number}}: {{trunc .Review.Body 150}} {{.PullRequest.HTMLURL}}",
+	"github.pullrequest":  "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} pull request #{{.PullRequest.Number}} (\x0303{{.PullRequest.Base.Ref}}...{{.PullRequest.Head.Ref}}\x0f): {{.PullRequest.Title}} {{.PullRequest.HTMLURL}}",
 }
 
 func refName(ref string) string {
