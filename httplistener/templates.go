@@ -19,7 +19,7 @@ var defaultTemplates = map[string]string{
 	"github.issuecomment": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} commented on issue #{{.Issue.Number}}: {{trunc .Comment.Body 150}} {{.Issue.HTMLURL}}",
 	"github.pullrequestreviewcomment": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} review commented on PR #{{.PullRequest.Number}}: {{trunc .Comment.Body 150}} {{.PullRequest.HTMLURL}}",
 	"github.pullrequestreview": "[{{b .Repository.Name}}] {{g .Review.User.Login}} {{.Action}} a review on PR #{{.PullRequest.Number}}: {{trunc .Review.Body 150}} {{.PullRequest.HTMLURL}}",
-	"github.pullrequest":  "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} pull request #{{.PullRequest.Number}} (\x0303{{.PullRequest.Base.Ref}}...{{.PullRequest.Head.Ref}}\x0f): {{.PullRequest.Title}} {{.PullRequest.HTMLURL}}",
+	"github.pullrequest":  "[{{b .Repository.Name}}] {{g .Sender.Login}} {{if .PullRequest.Merged}}merged{{else}}{{.Action}}{{end}} pull request #{{.PullRequest.Number}} (\x0303{{.PullRequest.Base.Ref}}...{{.PullRequest.Head.Ref}}\x0f): {{.PullRequest.Title}} {{.PullRequest.HTMLURL}}",
 }
 
 func refName(ref string) string {
