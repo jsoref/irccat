@@ -1,0 +1,541 @@
+## Logging is weird:
+20:55Z <@Habbie> 2019-02-09 20:54:40 INFO main main.go:38 IRCCat  () starting...
+20:55Z <@Habbie> 2019/02/09 21:54:40 Connected to irc.oftc.net:6697 (109.74.200.93:6697)
+20:55Z <@Habbie> that's some super special logging
+20:55Z <ahu> "ugh"
+20:55Z <@Habbie> the lines after that are back to the first format
+20:56Z <@Habbie> 2019-02-09 16:47:43 INFO main main.go:35 IRCCat  () starting...
+20:56Z <@Habbie> 2019/02/09 16:47:44 Connected to irc.oftc.net:6697 (109.74.200.93:6697)
+20:56Z <@Habbie> that's on a UTC machine
+20:56Z <@Habbie> still special
+20:56Z <ahu> it really is a special format also
+20:57Z <@Habbie> yes
+20:57Z <dwfreed> probably using a different logging library
+20:57Z <@Habbie> ah
+20:57Z <@Habbie> also note the lack of INFO/WARNING/...
+20:57Z <@Habbie> so yes, good call
+20:57Z <@Habbie> note that both formats are wrong!
+20:57Z <@Habbie> line 1 looks good but has the wrong timezone
+20:58Z <@Habbie> line 2 has weird slashes but the right timezone
+20:58Z <@Habbie> but, this is not the yak i'm shaving
+20:59Z <dwfreed> main.go uses https://github.com/juju/loggo
+21:00Z <@Habbie> indeed
+21:00Z <@Habbie> and that one line is from the ircevent lib
+21:00Z <@Habbie> which looks forked
+21:01Z <@Habbie> wow, the config parser just claims 'file not found' if i mess up json syntax
+
+## JSON errors are weird
+
+2019-02-09 21:01:01 ERROR main main.go:46 Error reading config file - exiting. I'm looking for irccat.[json|yaml|toml|hcl] in . or /etc
+because
+$ jq . < irccat.json
+parse error: Expected another key-value pair at line 32, column 3
+
+## IRC connect failures
+connection failure on startup aborts the process, but later disconnects cause nice retries
+
+## my review support is incomplete
+
+example: I did a review; author commented; I commented; irc bot says 20:41Z <HammerGit> [hammerspoon.github.io] Habbie submitted a review on PR #19:  https://github.com/Hammerspoon/hammerspoon.github.io/pull/19, while all I did was comment. It, however, looks like GitHub may have messed up the event contents here:
+```
+Headers
+Request URL: http://grace.7bits.nl:8045/github
+Request method: POST
+content-type: application/json
+Expect: 
+User-Agent: GitHub-Hookshot/f107969
+X-GitHub-Delivery: 95daa2c0-33bd-11e9-9a38-29a0429f8033
+X-GitHub-Event: pull_request_review
+X-Hub-Signature: sha1=XXX
+Payload
+{
+  "action": "submitted",
+  "review": {
+    "id": 204946732,
+    "node_id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3MjA0OTQ2NzMy",
+    "user": {
+      "login": "Habbie",
+      "id": 525838,
+      "node_id": "MDQ6VXNlcjUyNTgzOA==",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/525838?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Habbie",
+      "html_url": "https://github.com/Habbie",
+      "followers_url": "https://api.github.com/users/Habbie/followers",
+      "following_url": "https://api.github.com/users/Habbie/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Habbie/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Habbie/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Habbie/subscriptions",
+      "organizations_url": "https://api.github.com/users/Habbie/orgs",
+      "repos_url": "https://api.github.com/users/Habbie/repos",
+      "events_url": "https://api.github.com/users/Habbie/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Habbie/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "body": null,
+    "commit_id": "4bcd042e134c51671a57b747e1233216e21dcb10",
+    "submitted_at": "2019-02-18T20:41:36Z",
+    "state": "commented",
+    "html_url": "https://github.com/Hammerspoon/hammerspoon.github.io/pull/19#pullrequestreview-204946732",
+    "pull_request_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls/19",
+    "author_association": "NONE",
+    "_links": {
+      "html": {
+        "href": "https://github.com/Hammerspoon/hammerspoon.github.io/pull/19#pullrequestreview-204946732"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls/19"
+      }
+    }
+  },
+  "pull_request": {
+    "url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls/19",
+    "id": 253715368,
+    "node_id": "MDExOlB1bGxSZXF1ZXN0MjUzNzE1MzY4",
+    "html_url": "https://github.com/Hammerspoon/hammerspoon.github.io/pull/19",
+    "diff_url": "https://github.com/Hammerspoon/hammerspoon.github.io/pull/19.diff",
+    "patch_url": "https://github.com/Hammerspoon/hammerspoon.github.io/pull/19.patch",
+    "issue_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/issues/19",
+    "number": 19,
+    "state": "open",
+    "locked": false,
+    "title": "Extra docs on Spoons",
+    "user": {
+      "login": "dotemacs",
+      "id": 152363,
+      "node_id": "MDQ6VXNlcjE1MjM2Mw==",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/152363?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dotemacs",
+      "html_url": "https://github.com/dotemacs",
+      "followers_url": "https://api.github.com/users/dotemacs/followers",
+      "following_url": "https://api.github.com/users/dotemacs/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dotemacs/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dotemacs/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dotemacs/subscriptions",
+      "organizations_url": "https://api.github.com/users/dotemacs/orgs",
+      "repos_url": "https://api.github.com/users/dotemacs/repos",
+      "events_url": "https://api.github.com/users/dotemacs/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dotemacs/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "body": "As per my discussion with Habbie@IRC I'm adding this to make the discoverability of Spoons easier.\r\n\r\nI'm prompted to add it since I did stumble upon https://www.hammerspoon.org/Spoons/ but wasn't able to find it easily again.\r\n\r\nAlso added a link to Spoons from the homepage in the navbar.",
+    "created_at": "2019-02-17T14:35:22Z",
+    "updated_at": "2019-02-18T20:41:36Z",
+    "closed_at": null,
+    "merged_at": null,
+    "merge_commit_sha": "8d61ddbb89d14ab7738efeab93b27604895f2ea8",
+    "assignee": null,
+    "assignees": [
+
+    ],
+    "requested_reviewers": [
+
+    ],
+    "requested_teams": [
+
+    ],
+    "labels": [
+
+    ],
+    "milestone": null,
+    "commits_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls/19/commits",
+    "review_comments_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls/19/comments",
+    "review_comment_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls/comments{/number}",
+    "comments_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/issues/19/comments",
+    "statuses_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/statuses/4bcd042e134c51671a57b747e1233216e21dcb10",
+    "head": {
+      "label": "dotemacs:extra-docs",
+      "ref": "extra-docs",
+      "sha": "4bcd042e134c51671a57b747e1233216e21dcb10",
+      "user": {
+        "login": "dotemacs",
+        "id": 152363,
+        "node_id": "MDQ6VXNlcjE1MjM2Mw==",
+        "avatar_url": "https://avatars3.githubusercontent.com/u/152363?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/dotemacs",
+        "html_url": "https://github.com/dotemacs",
+        "followers_url": "https://api.github.com/users/dotemacs/followers",
+        "following_url": "https://api.github.com/users/dotemacs/following{/other_user}",
+        "gists_url": "https://api.github.com/users/dotemacs/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/dotemacs/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/dotemacs/subscriptions",
+        "organizations_url": "https://api.github.com/users/dotemacs/orgs",
+        "repos_url": "https://api.github.com/users/dotemacs/repos",
+        "events_url": "https://api.github.com/users/dotemacs/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/dotemacs/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "repo": {
+        "id": 171129704,
+        "node_id": "MDEwOlJlcG9zaXRvcnkxNzExMjk3MDQ=",
+        "name": "hammerspoon.github.io",
+        "full_name": "dotemacs/hammerspoon.github.io",
+        "private": false,
+        "owner": {
+          "login": "dotemacs",
+          "id": 152363,
+          "node_id": "MDQ6VXNlcjE1MjM2Mw==",
+          "avatar_url": "https://avatars3.githubusercontent.com/u/152363?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/dotemacs",
+          "html_url": "https://github.com/dotemacs",
+          "followers_url": "https://api.github.com/users/dotemacs/followers",
+          "following_url": "https://api.github.com/users/dotemacs/following{/other_user}",
+          "gists_url": "https://api.github.com/users/dotemacs/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/dotemacs/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/dotemacs/subscriptions",
+          "organizations_url": "https://api.github.com/users/dotemacs/orgs",
+          "repos_url": "https://api.github.com/users/dotemacs/repos",
+          "events_url": "https://api.github.com/users/dotemacs/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/dotemacs/received_events",
+          "type": "User",
+          "site_admin": false
+        },
+        "html_url": "https://github.com/dotemacs/hammerspoon.github.io",
+        "description": "Website",
+        "fork": true,
+        "url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io",
+        "forks_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/forks",
+        "keys_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/teams",
+        "hooks_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/hooks",
+        "issue_events_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/events",
+        "assignees_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/tags",
+        "blobs_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/languages",
+        "stargazers_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/stargazers",
+        "contributors_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/contributors",
+        "subscribers_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/subscribers",
+        "subscription_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/subscription",
+        "commits_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/merges",
+        "archive_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/downloads",
+        "issues_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/labels{/name}",
+        "releases_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/dotemacs/hammerspoon.github.io/deployments",
+        "created_at": "2019-02-17T14:10:24Z",
+        "updated_at": "2019-02-17T14:10:27Z",
+        "pushed_at": "2019-02-17T21:37:14Z",
+        "git_url": "git://github.com/dotemacs/hammerspoon.github.io.git",
+        "ssh_url": "git@github.com:dotemacs/hammerspoon.github.io.git",
+        "clone_url": "https://github.com/dotemacs/hammerspoon.github.io.git",
+        "svn_url": "https://github.com/dotemacs/hammerspoon.github.io",
+        "homepage": null,
+        "size": 5194,
+        "stargazers_count": 0,
+        "watchers_count": 0,
+        "language": "CSS",
+        "has_issues": false,
+        "has_projects": true,
+        "has_downloads": true,
+        "has_wiki": false,
+        "has_pages": false,
+        "forks_count": 0,
+        "mirror_url": null,
+        "archived": false,
+        "open_issues_count": 0,
+        "license": null,
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 0,
+        "default_branch": "master"
+      }
+    },
+    "base": {
+      "label": "Hammerspoon:master",
+      "ref": "master",
+      "sha": "28c783eae3f24d83344566487bf0897c33f71058",
+      "user": {
+        "login": "Hammerspoon",
+        "id": 9214848,
+        "node_id": "MDEyOk9yZ2FuaXphdGlvbjkyMTQ4NDg=",
+        "avatar_url": "https://avatars2.githubusercontent.com/u/9214848?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Hammerspoon",
+        "html_url": "https://github.com/Hammerspoon",
+        "followers_url": "https://api.github.com/users/Hammerspoon/followers",
+        "following_url": "https://api.github.com/users/Hammerspoon/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Hammerspoon/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Hammerspoon/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Hammerspoon/subscriptions",
+        "organizations_url": "https://api.github.com/users/Hammerspoon/orgs",
+        "repos_url": "https://api.github.com/users/Hammerspoon/repos",
+        "events_url": "https://api.github.com/users/Hammerspoon/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Hammerspoon/received_events",
+        "type": "Organization",
+        "site_admin": false
+      },
+      "repo": {
+        "id": 25393882,
+        "node_id": "MDEwOlJlcG9zaXRvcnkyNTM5Mzg4Mg==",
+        "name": "hammerspoon.github.io",
+        "full_name": "Hammerspoon/hammerspoon.github.io",
+        "private": false,
+        "owner": {
+          "login": "Hammerspoon",
+          "id": 9214848,
+          "node_id": "MDEyOk9yZ2FuaXphdGlvbjkyMTQ4NDg=",
+          "avatar_url": "https://avatars2.githubusercontent.com/u/9214848?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/Hammerspoon",
+          "html_url": "https://github.com/Hammerspoon",
+          "followers_url": "https://api.github.com/users/Hammerspoon/followers",
+          "following_url": "https://api.github.com/users/Hammerspoon/following{/other_user}",
+          "gists_url": "https://api.github.com/users/Hammerspoon/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/Hammerspoon/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/Hammerspoon/subscriptions",
+          "organizations_url": "https://api.github.com/users/Hammerspoon/orgs",
+          "repos_url": "https://api.github.com/users/Hammerspoon/repos",
+          "events_url": "https://api.github.com/users/Hammerspoon/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/Hammerspoon/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "html_url": "https://github.com/Hammerspoon/hammerspoon.github.io",
+        "description": "Website",
+        "fork": false,
+        "url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io",
+        "forks_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/forks",
+        "keys_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/teams",
+        "hooks_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/hooks",
+        "issue_events_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/events",
+        "assignees_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/tags",
+        "blobs_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/languages",
+        "stargazers_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/stargazers",
+        "contributors_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/contributors",
+        "subscribers_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/subscribers",
+        "subscription_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/subscription",
+        "commits_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/merges",
+        "archive_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/downloads",
+        "issues_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/labels{/name}",
+        "releases_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/deployments",
+        "created_at": "2014-10-18T10:06:37Z",
+        "updated_at": "2019-02-05T23:17:18Z",
+        "pushed_at": "2019-02-17T21:37:15Z",
+        "git_url": "git://github.com/Hammerspoon/hammerspoon.github.io.git",
+        "ssh_url": "git@github.com:Hammerspoon/hammerspoon.github.io.git",
+        "clone_url": "https://github.com/Hammerspoon/hammerspoon.github.io.git",
+        "svn_url": "https://github.com/Hammerspoon/hammerspoon.github.io",
+        "homepage": null,
+        "size": 6509,
+        "stargazers_count": 43,
+        "watchers_count": 43,
+        "language": "CSS",
+        "has_issues": false,
+        "has_projects": false,
+        "has_downloads": true,
+        "has_wiki": false,
+        "has_pages": true,
+        "forks_count": 13,
+        "mirror_url": null,
+        "archived": false,
+        "open_issues_count": 1,
+        "license": null,
+        "forks": 13,
+        "open_issues": 1,
+        "watchers": 43,
+        "default_branch": "master"
+      }
+    },
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls/19"
+      },
+      "html": {
+        "href": "https://github.com/Hammerspoon/hammerspoon.github.io/pull/19"
+      },
+      "issue": {
+        "href": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/issues/19"
+      },
+      "comments": {
+        "href": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/issues/19/comments"
+      },
+      "review_comments": {
+        "href": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls/19/comments"
+      },
+      "review_comment": {
+        "href": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls/comments{/number}"
+      },
+      "commits": {
+        "href": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls/19/commits"
+      },
+      "statuses": {
+        "href": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/statuses/4bcd042e134c51671a57b747e1233216e21dcb10"
+      }
+    },
+    "author_association": "NONE"
+  },
+  "repository": {
+    "id": 25393882,
+    "node_id": "MDEwOlJlcG9zaXRvcnkyNTM5Mzg4Mg==",
+    "name": "hammerspoon.github.io",
+    "full_name": "Hammerspoon/hammerspoon.github.io",
+    "private": false,
+    "owner": {
+      "login": "Hammerspoon",
+      "id": 9214848,
+      "node_id": "MDEyOk9yZ2FuaXphdGlvbjkyMTQ4NDg=",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/9214848?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Hammerspoon",
+      "html_url": "https://github.com/Hammerspoon",
+      "followers_url": "https://api.github.com/users/Hammerspoon/followers",
+      "following_url": "https://api.github.com/users/Hammerspoon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Hammerspoon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Hammerspoon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Hammerspoon/subscriptions",
+      "organizations_url": "https://api.github.com/users/Hammerspoon/orgs",
+      "repos_url": "https://api.github.com/users/Hammerspoon/repos",
+      "events_url": "https://api.github.com/users/Hammerspoon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Hammerspoon/received_events",
+      "type": "Organization",
+      "site_admin": false
+    },
+    "html_url": "https://github.com/Hammerspoon/hammerspoon.github.io",
+    "description": "Website",
+    "fork": false,
+    "url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io",
+    "forks_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/forks",
+    "keys_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/keys{/key_id}",
+    "collaborators_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/collaborators{/collaborator}",
+    "teams_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/teams",
+    "hooks_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/hooks",
+    "issue_events_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/issues/events{/number}",
+    "events_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/events",
+    "assignees_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/assignees{/user}",
+    "branches_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/branches{/branch}",
+    "tags_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/tags",
+    "blobs_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/git/blobs{/sha}",
+    "git_tags_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/git/tags{/sha}",
+    "git_refs_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/git/refs{/sha}",
+    "trees_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/git/trees{/sha}",
+    "statuses_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/statuses/{sha}",
+    "languages_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/languages",
+    "stargazers_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/stargazers",
+    "contributors_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/contributors",
+    "subscribers_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/subscribers",
+    "subscription_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/subscription",
+    "commits_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/commits{/sha}",
+    "git_commits_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/git/commits{/sha}",
+    "comments_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/comments{/number}",
+    "issue_comment_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/issues/comments{/number}",
+    "contents_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/contents/{+path}",
+    "compare_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/compare/{base}...{head}",
+    "merges_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/merges",
+    "archive_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/{archive_format}{/ref}",
+    "downloads_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/downloads",
+    "issues_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/issues{/number}",
+    "pulls_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/pulls{/number}",
+    "milestones_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/milestones{/number}",
+    "notifications_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/notifications{?since,all,participating}",
+    "labels_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/labels{/name}",
+    "releases_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/releases{/id}",
+    "deployments_url": "https://api.github.com/repos/Hammerspoon/hammerspoon.github.io/deployments",
+    "created_at": "2014-10-18T10:06:37Z",
+    "updated_at": "2019-02-05T23:17:18Z",
+    "pushed_at": "2019-02-17T21:37:15Z",
+    "git_url": "git://github.com/Hammerspoon/hammerspoon.github.io.git",
+    "ssh_url": "git@github.com:Hammerspoon/hammerspoon.github.io.git",
+    "clone_url": "https://github.com/Hammerspoon/hammerspoon.github.io.git",
+    "svn_url": "https://github.com/Hammerspoon/hammerspoon.github.io",
+    "homepage": null,
+    "size": 6509,
+    "stargazers_count": 43,
+    "watchers_count": 43,
+    "language": "CSS",
+    "has_issues": false,
+    "has_projects": false,
+    "has_downloads": true,
+    "has_wiki": false,
+    "has_pages": true,
+    "forks_count": 13,
+    "mirror_url": null,
+    "archived": false,
+    "open_issues_count": 1,
+    "license": null,
+    "forks": 13,
+    "open_issues": 1,
+    "watchers": 43,
+    "default_branch": "master"
+  },
+  "organization": {
+    "login": "Hammerspoon",
+    "id": 9214848,
+    "node_id": "MDEyOk9yZ2FuaXphdGlvbjkyMTQ4NDg=",
+    "url": "https://api.github.com/orgs/Hammerspoon",
+    "repos_url": "https://api.github.com/orgs/Hammerspoon/repos",
+    "events_url": "https://api.github.com/orgs/Hammerspoon/events",
+    "hooks_url": "https://api.github.com/orgs/Hammerspoon/hooks",
+    "issues_url": "https://api.github.com/orgs/Hammerspoon/issues",
+    "members_url": "https://api.github.com/orgs/Hammerspoon/members{/member}",
+    "public_members_url": "https://api.github.com/orgs/Hammerspoon/public_members{/member}",
+    "avatar_url": "https://avatars2.githubusercontent.com/u/9214848?v=4",
+    "description": ""
+  },
+  "sender": {
+    "login": "Habbie",
+    "id": 525838,
+    "node_id": "MDQ6VXNlcjUyNTgzOA==",
+    "avatar_url": "https://avatars1.githubusercontent.com/u/525838?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/Habbie",
+    "html_url": "https://github.com/Habbie",
+    "followers_url": "https://api.github.com/users/Habbie/followers",
+    "following_url": "https://api.github.com/users/Habbie/following{/other_user}",
+    "gists_url": "https://api.github.com/users/Habbie/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/Habbie/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/Habbie/subscriptions",
+    "organizations_url": "https://api.github.com/users/Habbie/orgs",
+    "repos_url": "https://api.github.com/users/Habbie/repos",
+    "events_url": "https://api.github.com/users/Habbie/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/Habbie/received_events",
+    "type": "User",
+    "site_admin": false
+  }
+}
+```
