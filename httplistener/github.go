@@ -25,7 +25,7 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 
 	hook, err := github.New(github.Options.Secret(viper.GetString("http.listeners.github.secret")))
 
-	var err2 error
+	terr := error(nil)
 
 	if err != nil {
 		return
@@ -59,8 +59,18 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 		pl := payload.(github.PushPayload)
 		send = true
 		msgs, err = hl.renderTemplate("github.push.irc", payload)
-		tmsgs, err2 = hl.renderTemplate("github.push.twitter", payload)
 		repo = pl.Repository.Name
+		for _, c := range commitLimit(pl, 10) {
+			log.Infof("generating tweet")
+			if terr == nil {
+				tmsg, err2 := hl.renderTemplate("github.commit.twitter", c)
+				tmsgs = append(tmsgs, strings.Join(tmsg, "\n"))
+				log.Infof("generated tweet: %s", tmsgs)
+				if err2 != nil {
+					terr = err2
+				}
+			}
+		}
 	case github.IssuesPayload:
 		pl := payload.(github.IssuesPayload)
 		if interestingIssueAction(pl.Action) {
@@ -85,12 +95,12 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 	}
 
 	if err != nil {
-		log.Errorf("Error rendering GitHub event template: %s", err)
+		log.Errorf("Error rendering GitHub event template for IRC: %s", err)
 		return
 	}
 
-	if err2 != nil {
-		log.Errorf("Error rendering GitHub event template: %s", err)
+	if terr != nil {
+		log.Errorf("Error rendering GitHub event template for Twitter: %s", err)
 		return
 	}
 
@@ -118,6 +128,7 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 			tweet, resp, err := hl.twitter.Statuses.Update(msg, &params)
 			prevtweet = tweet.ID
 			log.Infof("tweet=%s resp=%s err=%s", tweet, resp, err)
+			// log.Infof("tweet=%s")
 		}
 	}
 }
