@@ -539,3 +539,10 @@ Payload
   }
 }
 ```
+
+Another example: new PR, I submit the first review, this happens:
+```
+08:35Z <PowerGit> [pdns] Habbie edited a review on PR #7492: approved after that doc nit https://github.com/PowerDNS/pdns/pull/7492
+08:35Z <PowerGit> [pdns] Habbie submitted a review on PR #7492: approved after that doc nit https://github.com/PowerDNS/pdns/pull/7492
+08:35Z <PowerGit> [pdns] Habbie review commented on PR #7492: ```suggestion… https://github.com/PowerDNS/pdns/pull/7492
+```
