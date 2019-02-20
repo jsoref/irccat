@@ -10,16 +10,17 @@ import (
 )
 
 var defaultTemplates = map[string]string{
-	"github.release": "[{{b .Repository.Name}}] release {{h .Release.TagName}} has been published by {{g .Release.Author.Login}}: {{.Release.HTMLURL}}",
-	"github.push": `[{{b .Repository.Name}}] {{g .Sender.Login}} {{if .Forced}}force-{{end}}{{if .Deleted}}deleted{{else}}pushed{{end}} {{if .Commits}}{{.Commits|len}} commit{{if .Commits|len|lt 1}}s{{end}} to {{end}}{{.Ref|refType}} {{.Ref|refName|h}}: {{.Compare}}
+	"github.release.irc": "[{{b .Repository.Name}}] release {{h .Release.TagName}} has been published by {{g .Release.Author.Login}}: {{.Release.HTMLURL}}",
+	"github.push.irc": `[{{b .Repository.Name}}] {{g .Sender.Login}} {{if .Forced}}force-{{end}}{{if .Deleted}}deleted{{else}}pushed{{end}} {{if .Commits}}{{.Commits|len}} commit{{if .Commits|len|lt 1}}s{{end}} to {{end}}{{.Ref|refType}} {{.Ref|refName|h}}: {{.Compare}}
 {{range commitLimit . 3}}
  • {{g .Username}} ({{.Sha|truncateSha|h}}): {{trunc .Message 150}}
 {{end}}`,
-	"github.issue":        "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} issue #{{.Issue.Number}}: {{.Issue.Title}} {{.Issue.HTMLURL}}",
-	"github.issuecomment": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} commented on issue #{{.Issue.Number}}: {{trunc .Comment.Body 150}} {{.Comment.HTMLURL}}",
-	"github.pullrequestreviewcomment": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} review commented on PR #{{.PullRequest.Number}}: {{trunc .Comment.Body 150}} {{.PullRequest.HTMLURL}}",
-	"github.pullrequestreview": "[{{b .Repository.Name}}] {{g .Review.User.Login}} {{.Action}} a review on PR #{{.PullRequest.Number}}: {{trunc .Review.Body 150}} {{.PullRequest.HTMLURL}}",
-	"github.pullrequest":  "[{{b .Repository.Name}}] {{g .Sender.Login}} {{if .PullRequest.Merged}}merged{{else}}{{.Action}}{{end}} pull request #{{.PullRequest.Number}} (\x0303{{.PullRequest.Base.Ref}}...{{.PullRequest.Head.Ref}}\x0f): {{.PullRequest.Title}} {{.PullRequest.HTMLURL}}",
+	"github.issue.irc":        "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} issue #{{.Issue.Number}}: {{.Issue.Title}} {{.Issue.HTMLURL}}",
+	"github.issuecomment.irc": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} commented on issue #{{.Issue.Number}}: {{trunc .Comment.Body 150}} {{.Comment.HTMLURL}}",
+	"github.pullrequestreviewcomment.irc": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} review commented on PR #{{.PullRequest.Number}}: {{trunc .Comment.Body 150}} {{.PullRequest.HTMLURL}}",
+	"github.pullrequestreview.irc": "[{{b .Repository.Name}}] {{g .Review.User.Login}} {{.Action}} a review on PR #{{.PullRequest.Number}}: {{trunc .Review.Body 150}} {{.PullRequest.HTMLURL}}",
+	"github.pullrequest.irc":  "[{{b .Repository.Name}}] {{g .Sender.Login}} {{if .PullRequest.Merged}}merged{{else}}{{.Action}}{{end}} pull request #{{.PullRequest.Number}} (\x0303{{.PullRequest.Base.Ref}}...{{.PullRequest.Head.Ref}}\x0f): {{.PullRequest.Title}} {{.PullRequest.HTMLURL}}",
+	"github.commit.twitter":   "{{.URL}} ({{.Sha|truncateSha}}): {{printf \"%.150s\" .Message}}",
 }
 
 func refName(ref string) string {
@@ -97,6 +98,7 @@ type Commit struct {
 	Message  string
 	Username string
 	Sha      string
+	URL      string
 }
 
 func commitLimit(pl github.PushPayload, length int) []Commit {
@@ -106,7 +108,8 @@ func commitLimit(pl github.PushPayload, length int) []Commit {
 		if !c.Distinct {
 			continue
 		}
-		res = append(res, Commit{Message: c.Message, Username: c.Author.Username, Sha: c.ID})
+		res = append(res, Commit{Message: c.Message, Username: c.Author.Username, Sha: c.ID, URL: c.URL})
+		log.Infof("commit message=%s", c.Message)
 		i += 1
 		if i == length {
 			break

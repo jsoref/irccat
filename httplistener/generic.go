@@ -26,4 +26,6 @@ func (hl *HTTPListener) genericHandler(w http.ResponseWriter, request *http.Requ
 		return
 	}
 	dispatcher.Send(hl.irc, message, log, request.RemoteAddr)
+	tweet, resp, err := hl.twitter.Statuses.Update(message, nil)
+	log.Infof("tweet=%s resp=%s err=%s", tweet, resp, err)
 }

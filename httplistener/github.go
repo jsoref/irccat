@@ -2,6 +2,7 @@ package httplistener
 
 import (
 	"fmt"
+	"github.com/dghubble/go-twitter/twitter"
 	"github.com/spf13/viper"
 	"gopkg.in/go-playground/webhooks.v5/github"
 	"net/http"
@@ -24,6 +25,8 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 
 	hook, err := github.New(github.Options.Secret(viper.GetString("http.listeners.github.secret")))
 
+	terr := error(nil)
+
 	if err != nil {
 		return
 	}
@@ -41,6 +44,7 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 	}
 
 	msgs := []string{}
+	tmsgs := []string{}
 	repo := ""
 	send := false
 
@@ -49,33 +53,44 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 		pl := payload.(github.ReleasePayload)
 		if pl.Action == "published" {
 			send = true
-			msgs, err = hl.renderTemplate("github.release", payload)
+			msgs, err = hl.renderTemplate("github.release.irc", payload)
 			repo = pl.Repository.Name
 		}
 	case github.PushPayload:
 		pl := payload.(github.PushPayload)
 		send = true
-		msgs, err = hl.renderTemplate("github.push", payload)
+		msgs, err = hl.renderTemplate("github.push.irc", payload)
 		repo = pl.Repository.Name
+		for _, c := range commitLimit(pl, 10) {
+			log.Infof("generating tweet")
+			if terr == nil {
+				tmsg, err2 := hl.renderTemplate("github.commit.twitter", c)
+				tmsgs = append(tmsgs, strings.Join(tmsg, "\n"))
+				log.Infof("generated tweet: %s", tmsgs)
+				if err2 != nil {
+					terr = err2
+				}
+			}
+		}
 	case github.IssuesPayload:
 		pl := payload.(github.IssuesPayload)
 		if interestingIssueAction(pl.Action) {
 			send = true
-			msgs, err = hl.renderTemplate("github.issue", payload)
+			msgs, err = hl.renderTemplate("github.issue.irc", payload)
 			repo = pl.Repository.Name
 		}
 	case github.IssueCommentPayload:
 		pl := payload.(github.IssueCommentPayload)
 		if pl.Action == "created" {
 			send = true
-			msgs, err = hl.renderTemplate("github.issuecomment", payload)
+			msgs, err = hl.renderTemplate("github.issuecomment.irc", payload)
 			repo = pl.Repository.Name
 		}
 	case github.PullRequestPayload:
 		pl := payload.(github.PullRequestPayload)
 		if interestingIssueAction(pl.Action) {
 			send = true
-			msgs, err = hl.renderTemplate("github.pullrequest", payload)
+			msgs, err = hl.renderTemplate("github.pullrequest.irc", payload)
 			repo = pl.Repository.Name
 		}
 	case github.PullRequestReviewPayload:
@@ -94,11 +109,17 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 	}
 
 	if err != nil {
-		log.Errorf("Error rendering GitHub event template: %s", err)
+		log.Errorf("Error rendering GitHub event template for IRC: %s", err)
+		return
+	}
+
+	if terr != nil {
+		log.Errorf("Error rendering GitHub event template for Twitter: %s", err)
 		return
 	}
 
 	if send {
+		prevtweet := int64(0)
 		repo = strings.ToLower(repo)
 		channel := viper.GetString("http.listeners.github.default_channel")
 		if channel == "" {
@@ -113,6 +134,15 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 		log.Infof("%s [%s -> %s] GitHub event received", request.RemoteAddr, repo, channel)
 		for _, msg := range msgs {
 			hl.irc.Privmsgf(channel, msg)
+		}
+		for _, msg := range tmsgs {
+			if msg == "" { continue }
+			params := twitter.StatusUpdateParams{InReplyToStatusID: prevtweet}
+			log.Infof("msg=%q", msg)
+			tweet, resp, err := hl.twitter.Statuses.Update(msg, &params)
+			prevtweet = tweet.ID
+			log.Infof("tweet=%s resp=%s err=%s", tweet, resp, err)
+			// log.Infof("tweet=%s")
 		}
 	}
 }

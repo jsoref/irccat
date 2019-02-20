@@ -2,6 +2,7 @@ package tcplistener
 
 import (
 	"bufio"
+	"github.com/dghubble/go-twitter/twitter"
 	"github.com/irccloud/go-ircevent"
 	"github.com/irccloud/irccat/dispatcher"
 	"github.com/juju/loggo"
@@ -13,8 +14,9 @@ import (
 var log = loggo.GetLogger("TCPListener")
 
 type TCPListener struct {
-	socket net.Listener
-	irc    *irc.Connection
+	socket  net.Listener
+	irc     *irc.Connection
+	twitter *twitter.Client
 }
 
 func New() (*TCPListener, error) {
@@ -29,9 +31,10 @@ func New() (*TCPListener, error) {
 	return &listener, nil
 }
 
-func (l *TCPListener) Run(irccon *irc.Connection) {
+func (l *TCPListener) Run(irccon *irc.Connection, twittercon *twitter.Client) {
 	log.Infof("Listening for TCP requests on %s", viper.GetString("tcp.listen"))
 	l.irc = irccon
+	l.twitter = twittercon
 	go l.acceptConnections()
 }
 
@@ -56,6 +59,8 @@ func (l *TCPListener) handleConnection(conn net.Conn) {
 		msg = strings.Trim(msg, "\r\n")
 		if len(msg) > 0 {
 			dispatcher.Send(l.irc, msg, log, conn.RemoteAddr().String())
+			tweet, resp, err := l.twitter.Statuses.Update(msg, nil)
+			log.Infof("tweet=%s resp=%s err=%s", tweet, resp, err)
 		}
 	}
 	conn.Close()
