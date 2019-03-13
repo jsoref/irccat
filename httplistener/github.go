@@ -35,7 +35,8 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 	payload, err := hook.Parse(request,
 		github.ReleaseEvent, github.PushEvent, github.IssuesEvent, github.IssueCommentEvent,
 		github.PullRequestEvent,
-		github.PullRequestReviewEvent, github.PullRequestReviewCommentEvent)
+		github.PullRequestReviewEvent, github.PullRequestReviewCommentEvent,
+		github.GollumEvent)
 
 	if err != nil {
 		// This usually happens because we've received an event we don't need to handle.
@@ -106,6 +107,11 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 			msgs, err = hl.renderTemplate("github.pullrequestreviewcomment", payload)
 			repo = pl.Repository.Name
 		}
+	case github.GollumPayload:
+		pl := payload.(github.GollumPayload)
+		send = true
+		msgs, err = hl.renderTemplate("github.wiki", payload)
+		repo = pl.Repository.Name
 	}
 
 	if err != nil {
