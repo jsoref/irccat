@@ -43,7 +43,7 @@ func truncateSha(sha string) string {
 	if len(sha) < 8 {
 		return ""
 	}
-	return sha[len(sha)-7:]
+	return sha[:8]
 }
 
 // Colour helper functions to try and declutter
