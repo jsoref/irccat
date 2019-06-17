@@ -97,14 +97,14 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 	case github.PullRequestReviewPayload:
 		pl := payload.(github.PullRequestReviewPayload)
 		send = true
-		msgs, err = hl.renderTemplate("github.pullrequestreview", payload)
+		msgs, err = hl.renderTemplate("github.pullrequestreview.irc", payload)
 		repo = pl.Repository.Name
 		
 	case github.PullRequestReviewCommentPayload:
 		pl := payload.(github.PullRequestReviewCommentPayload)
 		if pl.Action == "created" {
 			send = true
-			msgs, err = hl.renderTemplate("github.pullrequestreviewcomment", payload)
+			msgs, err = hl.renderTemplate("github.pullrequestreviewcomment.irc", payload)
 			repo = pl.Repository.Name
 		}
 	case github.GollumPayload:
