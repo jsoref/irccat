@@ -11,7 +11,7 @@ import (
 
 func interestingIssueAction(action string) bool {
 	switch action {
-	case "opened", "closed", "reopened":
+	case "opened", "closed", "reopened", "edited":
 		return true
 	}
 	return false
