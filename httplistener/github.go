@@ -139,7 +139,7 @@ func (hl *HTTPListener) githubHandler(w http.ResponseWriter, request *http.Reque
 
 		log.Infof("%s [%s -> %s] GitHub event received", request.RemoteAddr, repo, channel)
 		for _, msg := range msgs {
-			hl.irc.Privmsgf(channel, msg)
+			hl.irc.Privmsg(channel, msg)
 		}
 		for _, msg := range tmsgs {
 			if msg == "" { continue }
