@@ -52,7 +52,7 @@ func boldFormat(text string) string {
 }
 
 func greyFormat(text string) string {
-	return "\x0314" + text + "\x0f"
+	return "\x02" + text + "\x0f"
 }
 
 func highlightFormat(text string) string {
