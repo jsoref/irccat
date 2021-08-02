@@ -19,7 +19,7 @@ var defaultTemplates = map[string]string{
 	"github.issuecomment.irc": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} commented on issue #{{.Issue.Number}}: {{trunc .Comment.Body 150}} ({{.Issue.Title}}) {{.Comment.HTMLURL}}",
 	"github.pullrequestreviewcomment.irc": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} review commented on PR #{{.PullRequest.Number}}: {{trunc .Comment.Body 150}} ({{.PullRequest.Title}}) {{.Comment.HTMLURL}}",
 	"github.pullrequestreview.irc": "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} a review on PR #{{.PullRequest.Number}}: {{trunc .Review.Body 150}} ({{.Review.State}}) ({{.PullRequest.Title}}) {{.Review.HTMLURL}}",
-	"github.pullrequest.irc":  "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} {{if .PullRequest.Merged}}merged{{else}}open{{end}} pull request #{{.PullRequest.Number}} (\x0303{{.PullRequest.Base.Ref}}...{{.PullRequest.Head.Ref}}\x0f): {{.PullRequest.Title}} {{.PullRequest.HTMLURL}}",
+	"github.pullrequest.irc":  "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} pull request #{{.PullRequest.Number}} [{{if .PullRequest.Merged}}merged{{else}}open{{end}}] (\x0303{{.PullRequest.Base.Ref}}...{{.PullRequest.Head.Ref}}\x0f): {{.PullRequest.Title}} {{.PullRequest.HTMLURL}}",
 	"github.commit.twitter":   "{{.URL}} ({{.Sha|truncateSha}}): {{printf \"%.150s\" .Message}}",
 	"github.wiki":	"[{{b .Repository.Name}}] {{range .Pages}}wiki page {{ .PageName }} {{ .Action }} {{if .Summary }} ({{.Summary}}) {{end}} {{.HTMLURL}} {{end}}",
 }
