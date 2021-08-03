@@ -15,8 +15,8 @@ var defaultTemplates = map[string]string{
 {{range commitLimit . 3}}
  • {{g .Username}} ({{.Sha|truncateSha|h}}): {{trunc .Message 150}}
 {{end}}`,
-	"github.issue.irc":        "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} issue #{{.Issue.Number}}: {{.Issue.Title}} {{.Issue.HTMLURL}}",
-	"github.issuecomment.irc": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} commented on issue #{{.Issue.Number}}: {{trunc .Comment.Body 150}} ({{.Issue.Title}}) {{.Comment.HTMLURL}}",
+	"github.issue.irc":                    "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} {{if contains .Issue.HTMLURL \"/pull/\"}}PR{{else}}issue{{end}} #{{.Issue.Number}}: {{.Issue.Title}} {{.Issue.HTMLURL}}",
+	"github.issuecomment.irc":             "[{{b .Repository.Name}}] {{g .Comment.User.Login}} commented on {{if contains .Issue.HTMLURL \"/pull/\"}}PR{{else}}issue{{end}} #{{.Issue.Number}}: {{trunc .Comment.Body 150}} ({{.Issue.Title}}) {{.Comment.HTMLURL}}",
 	"github.pullrequestreviewcomment.irc": "[{{b .Repository.Name}}] {{g .Comment.User.Login}} review commented on PR #{{.PullRequest.Number}}: {{trunc .Comment.Body 150}} ({{.PullRequest.Title}}) {{.Comment.HTMLURL}}",
 	"github.pullrequestreview.irc": "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} a review on PR #{{.PullRequest.Number}}: {{trunc .Review.Body 150}} ({{.Review.State}}) ({{.PullRequest.Title}}) {{.Review.HTMLURL}}",
 	"github.pullrequest.irc":  "[{{b .Repository.Name}}] {{g .Sender.Login}} {{.Action}} pull request #{{.PullRequest.Number}} [{{if .PullRequest.Merged}}merged{{else}}open{{end}}] (\x0303{{.PullRequest.Base.Ref}}...{{.PullRequest.Head.Ref}}\x0f): {{.PullRequest.Title}} {{.PullRequest.HTMLURL}}",
@@ -70,6 +70,7 @@ func parseTemplates() *template.Template {
 		"b":           boldFormat,
 		"g":           greyFormat,
 		"h":           highlightFormat,
+		"contains":    strings.Contains,
 	}
 
 	t := template.New("irccat")
