@@ -11,7 +11,7 @@ import (
 
 var defaultTemplates = map[string]string{
 	"github.release.irc": "[{{b .Repository.Name}}] release {{h .Release.TagName}} has been published by {{g .Release.Author.Login}}: {{.Release.HTMLURL}}",
-	"github.push.irc": `[{{b .Repository.Name}}] {{g .Sender.Login}} {{if .Forced}}force-{{end}}{{if .Deleted}}deleted{{else}}pushed{{end}} {{if .Commits}}{{.Commits|len}} commit{{if .Commits|len|lt 1}}s{{end}} to {{end}}{{.Ref|refType}} {{.Ref|refName|h}}: {{.Compare}}
+	"github.push.irc": `[{{b .Repository.Name}}] {{g .Sender.Login}} {{if .Forced}}force-{{end}}{{if .Deleted}}deleted{{else}}pushed{{end}} {{if .Commits}}{{.Commits|len}} commit{{if .Commits|len|lt 1}}s{{end}} to {{end}}{{.Ref|refType}} {{.Ref|refName|h}}: {{if .Deleted}}{{.Repository.HTMLURL}}/commits/{{.Before}}{{else}}{{.Compare}}{{end}}
 {{range commitLimit . 3}}
  • {{g .Username}} ({{.Sha|truncateSha|h}}): {{trunc .Message 150}}
 {{end}}`,
