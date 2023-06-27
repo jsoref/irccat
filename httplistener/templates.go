@@ -26,7 +26,7 @@ var defaultTemplates = map[string]string{
 
 func refName(ref string) string {
 	parts := strings.Split(ref, "/")
-	return parts[2]
+	return strings.Join(parts[2:], "/")
 }
 
 func refType(ref string) string {
