@@ -16,6 +16,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 )
 
 var log = loggo.GetLogger("main")
@@ -150,6 +151,8 @@ func (i *IRCCat) handleWelcome(e *irc.Event) {
 	if viper.IsSet("irc.identify_pass") && viper.GetString("irc.identify_pass") != "" {
 		i.irc.SendRawf("NICKSERV IDENTIFY %s", viper.GetString("irc.identify_pass"))
 	}
+
+	time.Sleep(5 * time.Second)
 
 	log.Infof("Connected, joining channels...")
 	for _, channel := range viper.GetStringSlice("irc.channels") {
