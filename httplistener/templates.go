@@ -3,10 +3,13 @@ package httplistener
 import (
 	"bytes"
 	"errors"
-	"github.com/irccloud/irccat/util"
-	"gopkg.in/go-playground/webhooks.v5/github"
+	"regexp"
 	"strings"
 	"text/template"
+
+	"github.com/irccloud/irccat/util"
+
+	"gopkg.in/go-playground/webhooks.v5/github"
 )
 
 var defaultTemplates = map[string]string{
@@ -39,6 +42,11 @@ func refType(ref string) string {
 	return ""
 }
 
+func stripQuoteAndTruncate(in string, length int) string {
+	var quote = regexp.MustCompile(`>.*\\n`)
+	return util.Truncate(quote.ReplaceAllString(in, ""), length)
+}
+
 func truncateSha(sha string) string {
 	if len(sha) < 8 {
 		return ""
@@ -62,7 +70,7 @@ func highlightFormat(text string) string {
 func parseTemplates() *template.Template {
 
 	funcMap := template.FuncMap{
-		"trunc":       util.Truncate,
+		"trunc":       stripQuoteAndTruncate,
 		"truncateSha": truncateSha,
 		"refType":     refType,
 		"refName":     refName,
